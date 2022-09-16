@@ -1,13 +1,14 @@
 from requests import Session
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+import os
 
 s = None
 
 def login():
     global s
     email = 'rotatoespotatoes@googlemail.com'
-    pwd = 'hotrotbot'
+    pwd = os.environ['SPLUSPWD']
     start_url = 'https://www.spielerplus.de'
     login_url = 'https://www.spielerplus.de/site/login'
     s = Session()
