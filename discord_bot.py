@@ -9,6 +9,7 @@ bot = interactions.Client(
 )
 
 
+
 @bot.command(name='participation', description='loads participation from SpielerPlus')
 async def get_participation(ctx: interactions.CommandContext):
     # todo: make sure the messages are not too long
