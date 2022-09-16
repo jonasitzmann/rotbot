@@ -35,5 +35,13 @@ def save_participation():
         f.write(str(soup))
 
 
+def get_event_page(url):
+    if s is None:
+        login()
+    r = s.get(url)
+    soup = BeautifulSoup(r.content, features='lxml')
+    return soup
+
+
 if __name__ == '__main__':
     save_participation()

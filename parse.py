@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
 import splus
+from functools import cache
+from bs4 import Tag
 
 
 class Participation(Enum):
@@ -25,43 +27,40 @@ tag_map = {
 }
 
 
-def get_participation():
-    splus.save_participation()
+def get_participation(reload=True):
+    if reload:
+        splus.save_participation()
     with open('splus.html', 'r') as f:
             soup = BeautifulSoup(f, 'html.parser')
     table_div = soup.find("div", {"class": "wrap"}).find("div", {"class": "container"})\
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
+    names, urls = get_events(table_div)
     dates = get_dates(table_div)
+    dates = [f'{d.strftime("%d.%m.%Y")}: {n} ({u})' for d, n, u in zip(dates, names, urls)]
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations, index=dates).applymap(lambda x: x.name.lower())
     return participation_df
-    # print(participation_df)
-    # participations_np = np.array([[p==Participation.YES for p in plist] for plist in individual_participations.values()])
-    # num_participants = participations_np.sum(axis=0).astype(np.float32)
-    # num_participants += 0.5 * np.array([[p==Participation.MAYBE for p in plist] for plist in individual_participations.values()]).sum(axis=0)
-    # plot_participation(dates, num_participants)
 
+def get_events(table_div):
+    names, urls = [], []
+    table = table_div.find('table', {'class': 'table statistics'})
+    for row in table.find_all('th'):
+        a = row.find('a')
+        if a:
+            link = a['href']
+            url = f'https://www.spielerplus.de' + link
+            event_type = link.split('/')[1]
+            id = link.split('=')[1]
+            name = get_event_name(url)
+            names.append(name)
+            urls.append(url)
+    return names, urls
 
-def plot_participation(dates, num_participants):
-    import matplotlib.dates as mdates
-    plt.style.use('seaborn-whitegrid')
-    dates, num_participants = [np.array(arr) for arr in [dates, num_participants]]
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%Y'))
-    plt.gca().xaxis.set_major_locator(mdates.MonthLocator(interval=6))
-    weekdays = np.array([d.weekday() for d in dates])
-    day_masks = [weekdays == i for i in range(7)]
-    for day_idx, label in [(0, 'Mo'), (1, 'Di'), (2, 'Mi'), (3, 'Do'), (4, 'Fr'), (5, 'Sa'), (6, 'So')]:
-        if day_masks[day_idx].any():
-            plt.scatter(dates[day_masks[day_idx]], num_participants[day_masks[day_idx]], label=label, s=15, marker='x')
-
-    plt.legend()
-    fig = plt.gcf()
-    fig.set_size_inches(8, 4)
-    fig.set_dpi(200)
-    fig.autofmt_xdate()
-    fig.suptitle('Rotpot Trainingsbeteiligung')
-    plt.tight_layout()
-    plt.show()
+@cache
+def get_event_name(url):
+    soup = splus.get_event_page(url)
+    name = soup.find('div', {'class': 'headline_small'}).text
+    return name
 
 
 def get_participations(table_div):
@@ -106,5 +105,5 @@ def get_names(table_div):
 
 
 if __name__ == '__main__':
-    x = get_participation()
+    x = get_participation(reload=False)
     print(x)
