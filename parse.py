@@ -34,7 +34,7 @@ def get_participation():
     dates = get_dates(table_div)
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations, index=dates).applymap(lambda x: x.name.lower())
-    return str(participation_df)
+    return participation_df
     # print(participation_df)
     # participations_np = np.array([[p==Participation.YES for p in plist] for plist in individual_participations.values()])
     # num_participants = participations_np.sum(axis=0).astype(np.float32)

@@ -22,7 +22,10 @@ async def get_participation(ctx: interactions.CommandContext, player=None):
     # todo: make sure the messages are not too long
     participation = parse.get_participation()
     if player is not None:
-        participation = participation[player]
+        if player in participation.columns:
+            participation = participation[player]
+        else:
+            await ctx.send(f'cannot find player {player}')
     await ctx.send(str(participation))
 
 
