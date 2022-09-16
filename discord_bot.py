@@ -26,7 +26,7 @@ async def get_participation(ctx: interactions.CommandContext, player=None):
             participation = participation[player]
         else:
             await ctx.send(f'cannot find player {player}')
-    await ctx.send(str(participation))
+    await ctx.send(str(participation.iloc[::-1]))
 
 
 @bot.command(name='echo', description='echos a given text',
