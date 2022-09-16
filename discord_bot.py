@@ -9,10 +9,20 @@ bot = interactions.Client(
 )
 
 
-@bot.command(name='participation', description='loads participation from SpielerPlus',)
-async def get_participation(ctx: interactions.CommandContext):
+@bot.command(name='participation', description='loads participation from SpielerPlus',
+             options=[
+                 interactions.Option(
+                     name="player",
+                     description="player name in SpielerPlus",
+                     type=interactions.OptionType.STRING,
+                     required=False,
+                 )]
+             )
+async def get_participation(ctx: interactions.CommandContext, player=None):
     # todo: make sure the messages are not too long
-    participation = str(parse.get_participation())
+    participation = parse.get_participation()
+    if player is not None:
+        participation = participation[player]
     await ctx.send(str(participation))
 
 
@@ -25,6 +35,7 @@ async def get_participation(ctx: interactions.CommandContext):
                      required=True,
                  )]
              )
+
 async def echo(ctx: interactions.CommandContext, text='...'):
     await ctx.send(text)
 
