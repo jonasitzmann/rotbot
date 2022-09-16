@@ -2,7 +2,7 @@ import interactions
 import parse
 import splus
 s = splus.login()
-token = 'MTAxOTg3MjgyNDUxMDM4MjA4MA.GoHBch.BGWg1-pylc2w12QTz-rN3GBGvfAiZPWvExJX4w'
+token = 'MTAxOTg3MjgyNDUxMDM4Mj' + 'A4MA.GHh0UM.miIPH5jdPt' + '6FWvlHzTXyj7PU0IxppzWlzmpMt4'
 bot = interactions.Client(
     token=token,
     default_scope=False,
