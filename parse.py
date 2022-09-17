@@ -36,7 +36,7 @@ def get_participation(reload=True):
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
     names, urls = get_events(table_div)
     dates = get_dates(table_div)
-    dates = [f'{d.strftime("%d.%m.%Y")}: {n} ({u})' for d, n, u in zip(dates, names, urls)]
+    dates = [f'{d.strftime("%d.%m.%Y")}: [{n}]({u})' for d, n, u in zip(dates, names, urls)]
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations, index=dates).applymap(lambda x: x.name.lower())
     return participation_df
@@ -73,7 +73,6 @@ def get_participations(table_div):
             for x in date.find_all('i'):  # zero or one
                 cls = x['class'][0]
                 participations[name].append(tag_map[cls])
-        # participations[name] = [tag_map[icon['data-icon']] for icon in row.find_all('svg')]
     return participations
 
 
