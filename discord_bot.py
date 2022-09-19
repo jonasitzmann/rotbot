@@ -2,6 +2,8 @@ import interactions
 import parse
 import splus
 import os
+import database
+database.create_players_table()
 s = splus.login()
 token = os.environ['BOTTOKEN']
 bot = interactions.Client(
