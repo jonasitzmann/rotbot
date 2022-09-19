@@ -20,4 +20,4 @@ def create_players_table():
         db.Column('splus_id', db.Integer),
         db.Column('name', db.String)
     )
-    meta.create_all(players)
+    meta.create_all(engine)
