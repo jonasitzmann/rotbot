@@ -4,6 +4,8 @@ import os
 from discord import player
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 engine = db.create_engine(DATABASE_URL, echo=False)
 meta = db.MetaData()
 connection = engine.connect()
