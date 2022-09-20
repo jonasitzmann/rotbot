@@ -1,12 +1,10 @@
 from bs4 import BeautifulSoup
 from enum import Enum, auto
 import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime
-import numpy as np
 import splus
 from functools import cache
-from bs4 import Tag
+import numpy as np
 
 
 class Participation(Enum):
@@ -36,10 +34,13 @@ def get_participation(reload=True):
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
     names, urls = get_events(table_div)
     dates = get_dates(table_div)
-    dates = [f'{d.strftime("%d.%m.%Y")}: [{n}](<{u}>)' for d, n, u in zip(dates, names, urls)]
+    # dates = [f'{d.strftime("%d.%m.%Y")}: [{n}](<{u}>)' for d, n, u in zip(dates, names, urls)]
     individual_participations = get_participations(table_div)
-    participation_df = pd.DataFrame(individual_participations, index=dates).applymap(lambda x: x.name.lower())
-    return participation_df
+    participation_df = pd.DataFrame(individual_participations).applymap(lambda x: x.name.lower())
+    participation_df['name'] = names
+    participation_df['url'] = urls
+    participation_df['date'] = dates
+    return participation_df.iloc[::-1]
 
 def get_events(table_div):
     names, urls = [], []
@@ -105,4 +106,4 @@ def get_names(table_div):
 
 if __name__ == '__main__':
     x = get_participation(reload=False)
-    print(x)
+    print('\n'.join(sorted(x.columns)))
