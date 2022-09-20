@@ -49,7 +49,6 @@ def filter_trainings_func(row):
 async def get_participation(ctx: interactions.CommandContext):
     member = discord.utils.get(members, id=ctx.user.id)
     if splus_name := discord2splus.get(member, None):
-        await member.send('Lade SpielerPlus Daten..')
         participation = parse.get_participation()
         if splus_name in participation.columns:
             df = participation[[*'name date url'.split(), splus_name]]
