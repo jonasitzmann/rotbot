@@ -36,17 +36,17 @@ def filter_trainings_func(row):
 
 
 
-@bot.command(name='participation', description='loads participation from SpielerPlus',
+@bot.command(name='tragdichein', description='Listet SpielerPlus Termine auf, zu denen du dich noch nicht eingetragen hast',
              # options=[
              #     interactions.Option(
-             #         name="player",
-             #         description="player name in SpielerPlus",
-             #         type=interactions.OptionType.STRING,
+             #         name="wochen",
+             #         description="max. Wochen in der Zukunft",
+             #         type=interactions.OptionType.INTEGER,
              #         required=False,
              #     )]
              )
 
-async def get_participation(ctx: interactions.CommandContext):
+async def get_appointments(ctx: interactions.CommandContext):
     member = discord.utils.get(members, id=ctx.user.id)
     if splus_name := discord2splus.get(member, None):
         participation = parse.get_participation()
@@ -58,7 +58,7 @@ async def get_participation(ctx: interactions.CommandContext):
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
             trainings_str, others_str = ['\n'.join([utils.format_appointment(row) for i, row in x.iterrows()]) for x in [trainings_df, non_training_df]]
-            msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 12 Wochen):\n{others_str}"
+            msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 20 Wochen):\n{others_str}"
             return await ctx.send(msg)
     await member.send_message('Dir ist kein SpierlPlus Account zugeordnet')
 

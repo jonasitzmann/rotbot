@@ -20,12 +20,12 @@ def login():
     r = s.post(login_url, data=payload)
 
 
-def save_participation():
+def save_participation(weeks=20):
     if s is None:
         login()
     now = datetime.now()
     start_date = now.strftime('%Y-%m-%d')
-    end_date = (now + timedelta(weeks=12)).strftime('%Y-%m-%d')
+    end_date = (now + timedelta(weeks=weeks)).strftime('%Y-%m-%d')
     participation_url = 'https://www.spielerplus.de/participation'
     r = s.post(participation_url, data={
         'StatisticFilterForm[startdate]': start_date,
