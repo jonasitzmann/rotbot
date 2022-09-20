@@ -31,7 +31,7 @@ async def on_ready():
 
 
 def filter_trainings_func(row):
-    days = (row['date'] - now).days
+    days = (now - row['date']).days
     return days < 14
 
 
