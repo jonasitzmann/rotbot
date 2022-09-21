@@ -32,7 +32,7 @@ async def on_ready():
 
 
 def filter_trainings_func(row):
-    days = (now - row['date']).days
+    days = (now - url2event[row.url].start).days
     return days < 14
 
 
