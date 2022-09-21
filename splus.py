@@ -35,7 +35,7 @@ def save_participation(weeks=20):
         f.write(str(soup))
 
 
-def get_event_page(url):
+def get_html(url):
     if s is None:
         login()
     r = s.get(url)

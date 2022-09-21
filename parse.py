@@ -1,10 +1,13 @@
 from bs4 import BeautifulSoup
+import re
 from enum import Enum, auto
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import splus
 from functools import cache
 import numpy as np
+from dataclasses import dataclass
+from typing import Optional
 
 
 class Participation(Enum):
@@ -14,6 +17,21 @@ class Participation(Enum):
     Circle = auto()
     EXCLAMINTAION = auto()
     Cross = auto()
+
+
+class EventType(Enum):
+    TRAINING = auto()
+    TOURNAMENT = auto()
+    GAME = auto()
+    EVENT = auto()
+
+
+str2e_type = {
+    'training': EventType.TRAINING,
+    'tournament': EventType.TOURNAMENT,
+    'game': EventType.GAME,
+    'event': EventType.EVENT
+}
 
 tag_map = {
     'fa-participation-yes': Participation.YES,
@@ -32,36 +50,54 @@ def get_participation(reload=True):
             soup = BeautifulSoup(f, 'html.parser')
     table_div = soup.find("div", {"class": "wrap"}).find("div", {"class": "container"})\
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
-    names, urls = get_events(table_div)
-    dates = get_dates(table_div)
-    # dates = [f'{d.strftime("%d.%m.%Y")}: [{n}](<{u}>)' for d, n, u in zip(dates, names, urls)]
+    events = get_events(table_div)
+    url2events = {e.url: e for e in events}
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations).applymap(lambda x: x.name.lower())
-    participation_df['name'] = names
-    participation_df['url'] = urls
-    participation_df['date'] = dates
-    return participation_df.iloc[::-1]
+    participation_df['url'] = url2events.keys()
+    return url2events, participation_df.iloc[::-1]
 
 def get_events(table_div):
-    names, urls = [], []
+    events = []
     table = table_div.find('table', {'class': 'table statistics'})
     for row in table.find_all('th'):
         a = row.find('a')
         if a:
             link = a['href']
             url = f'https://www.spielerplus.de' + link
-            event_type = link.split('/')[1]
-            id = link.split('=')[1]
-            name = get_event_name(url)
-            names.append(name)
-            urls.append(url)
-    return names, urls
+            event = get_event(url)
+            events.append(event)
+    return events
+
+
+@dataclass
+class Event:
+    name: str
+    type: EventType
+    start: datetime
+    deadline: datetime
+    url: str
+
+def get_form_entry(soup, id):
+    return soup.find('input', dict(id=id)).get('value')
+
+def str2datetime(x):
+    return datetime.strptime(x, '%d.%m.%Y %H:%M')
+
 
 @cache
-def get_event_name(url):
-    soup = splus.get_event_page(url)
-    name = soup.find('div', {'class': 'headline_small'}).text
-    return name
+def get_event(url):
+    update_url = url.replace('view', 'update')
+    e_type = str2e_type[url.rsplit('/', 2)[1]]
+    soup = splus.get_html(update_url)
+    e_type_str = e_type.name.lower()
+    name = get_form_entry(soup, e_type_str + '-name')
+    start_date = get_form_entry(soup, 'datetime-startdate-disp')
+    start_time = get_form_entry(soup, 'datetime-starttime-disp')
+    deadline = str2datetime(get_form_entry(soup, e_type_str + '-participationdate-disp'))
+    start = str2datetime(f'{start_date} {start_time}')
+    event = Event(name, e_type, start, deadline, url)
+    return event
 
 
 def get_participations(table_div):
@@ -105,5 +141,8 @@ def get_names(table_div):
 
 
 if __name__ == '__main__':
-    x = get_participation(reload=False)
-    print('\n'.join(sorted(x.columns)))
+    # event = get_event('https://www.spielerplus.de/tournament/view?id=761682')
+    # event = get_event('https://www.spielerplus.de/training/view?id=35670975')
+    # print(event)
+    urls, x = get_participation(reload=False)
+    print(urls)
