@@ -11,4 +11,4 @@ def download_google_sheet_as_df(id, filename='temp.csv', gid=None):
     return pd.read_csv(filename)
 
 def format_appointment(event):
-    return f"{event.date.strftime('%d.%m.%Y')}: [{event.name}](<{event.url}>)"
+    return f"{event.start.strftime('%d.%m.%Y')}: [{event.name}](<{event.url}>)"
