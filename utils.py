@@ -10,5 +10,5 @@ def download_google_sheet_as_df(id, filename='temp.csv', gid=None):
     wget.download(f'https://docs.google.com/spreadsheets/d/{id}/export?{gid_str}format=csv', out=filename)
     return pd.read_csv(filename)
 
-def format_appointment(x):
-    return f"{x['date'].strftime('%d.%m.%Y')}: [{x['name']}](<{x['url']}>)"
+def format_appointment(event):
+    return f"{event.date.strftime('%d.%m.%Y')}: [{event.name}](<{event.url}>)"

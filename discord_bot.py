@@ -53,7 +53,7 @@ async def get_appointments(ctx: ApplicationContext):
             trainings_df = df[trainings_mask]
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
-            trainings_str, others_str = ['\n'.join([utils.format_appointment(row) for i, row in x.iterrows()]) for x in [trainings_df, non_training_df]]
+            trainings_str, others_str = ['\n'.join([utils.format_appointment(url2event[row.url]) for i, row in x.iterrows()]) for x in [trainings_df, non_training_df]]
             msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 20 Wochen):\n{others_str}"
             await member.send(embed=discord.Embed(description=msg))
             await ctx.respond('ok', ephemeral=True)
