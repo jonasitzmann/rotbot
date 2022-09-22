@@ -17,7 +17,8 @@ id_players_info = '1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE'
 players_info = utils.download_google_sheet_as_df(id_players_info).dropna(axis=0)
 splus2discord, discord2splus, members, participation, url2event = {}, {}, [], None, {}
 now = datetime.datetime.now()
-debug = True
+# debug = True
+debug = False
 
 def get_user(discord_name):
     username, discrimantor = discord_name.split('#')
