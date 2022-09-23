@@ -16,7 +16,6 @@ bot = discord.Bot(intents=intents)
 id_players_info = '1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE'
 players_info = utils.download_google_sheet_as_df(id_players_info).dropna(axis=0)
 splus2discord, discord2splus, members, participation, url2event = {}, {}, [], None, {}
-now = datetime.datetime.now()
 # debug = True
 debug = False
 
@@ -39,6 +38,7 @@ async def on_ready():
 
 
 def filter_trainings_func(row):
+    now = datetime.datetime.now()
     days = (url2event[row.url].start - now).days
     return days < 14
 
@@ -70,7 +70,7 @@ async def get_appointments(ctx: ApplicationContext):
             df = df[df[splus_name] == P.Circle.name.lower()]
             trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
-            trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
+            # trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
             trainings_str, others_str = ['\n'.join([utils.format_appointment(url2event[row.url]) for i, row in x.iterrows()]) for x in [trainings_df, non_training_df]]
             msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 20 Wochen):\n{others_str}"
