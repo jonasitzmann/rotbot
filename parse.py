@@ -91,7 +91,10 @@ def get_event(url):
     e_type = str2e_type[url.rsplit('/', 2)[1]]
     soup = splus.get_html(update_url)
     e_type_str = e_type.name.lower()
-    name = get_form_entry(soup, e_type_str + '-name')
+    if e_type == EventType.GAME:
+        name = 'Spiel gegen ' + get_form_entry(soup, 'game-opponentname')
+    else:
+        name = get_form_entry(soup, e_type_str + '-name')
     start_date = get_form_entry(soup, 'datetime-startdate-disp')
     start_time = get_form_entry(soup, 'datetime-starttime-disp')
     deadline = str2datetime(get_form_entry(soup, e_type_str + '-participationdate-disp'))

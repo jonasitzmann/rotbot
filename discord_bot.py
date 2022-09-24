@@ -34,7 +34,6 @@ async def on_ready():
         update_df.start()
     splus2discord = {r.splus_name: get_user(r.discord_name) for i, r in players_info.iterrows()}
     discord2splus = {v: k for k, v in splus2discord.items()}
-    print('ready')
 
 
 def filter_trainings_func(row):
@@ -70,7 +69,7 @@ async def get_appointments(ctx: ApplicationContext):
             df = df[df[splus_name] == P.Circle.name.lower()]
             trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
-            # trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
+            trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
             trainings_str, others_str = ['\n'.join([utils.format_appointment(url2event[row.url]) for i, row in x.iterrows()]) for x in [trainings_df, non_training_df]]
             msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 20 Wochen):\n{others_str}"
@@ -80,15 +79,20 @@ async def get_appointments(ctx: ApplicationContext):
 counter = 0
 
 async def get_event_names(ctx):
-    non_trainings = [e.name for e in url2event.values() if e.type != E.TRAINING]
-    return non_trainings
+    non_trainings = [e.name for e in sorted(url2event.values(), key=lambda e: e.start) if e.type != E.TRAINING]
+    return ['Nächstes Training', *non_trainings]
 
 
 def get_event_participants(event_name, participation_types=None):
     if participation_types is None:
         participation_types = [P.YES]
     participation_types = [p.name.lower() for p in participation_types]
-    url = [e.url for e in url2event.values() if e.name == event_name][0]
+    if event_name == 'Nächstes Training':
+        trainings = [e for e in url2event.values() if e.type == E.TRAINING]
+        training = sorted(trainings, key=lambda e: e.start)[0]
+        url = training.url
+    else:
+        url = [e.url for e in url2event.values() if e.name == event_name][0]
     df = participation[participation.url == url].T
     df = df[df.iloc[:, 0].isin(participation_types)]
     names = df.index.tolist()
