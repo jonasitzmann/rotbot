@@ -15,7 +15,7 @@ def download_google_sheet_as_df(id, filename='temp.csv', gid=None):
     return pd.read_csv(filename)
 
 def format_appointment(event):
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
     if event.deadline > now:
         remaining = humanize.naturaldelta(event.deadline - now)
         remaining_str = f'{remaining} zum Zusagen'

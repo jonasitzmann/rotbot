@@ -40,9 +40,9 @@ async def on_ready():
 
 
 async def remember_candidates(time_left=None):
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
     if time_left is None:
-        time_left = datetime.timedelta(minutes=15)
+        time_left = datetime.timedelta(minutes=10t)
         # time_left = datetime.timedelta(minutes=154)
     for event in list(url2event.values()):
         time_left_e = event.deadline - now
@@ -61,7 +61,7 @@ async def remember_candidates(time_left=None):
 
 
 def filter_trainings_func(row):
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
     days = (url2event[row.url].start - now).days
     return days < 14
 
