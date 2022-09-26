@@ -80,7 +80,7 @@ async def get_appointments(ctx: ApplicationContext):
     if splus_name := discord2splus.get(member, None):
         if splus_name in participation.columns:
             df = participation[['url', splus_name]]
-            df = df[df[splus_name] == P.Circle.name.lower()]
+            # df = df[df[splus_name] == P.Circle.name.lower()]
             trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]

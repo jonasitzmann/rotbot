@@ -16,5 +16,9 @@ def download_google_sheet_as_df(id, filename='temp.csv', gid=None):
 
 def format_appointment(event):
     now = datetime.datetime.now()
-    remaining = humanize.naturaldelta(event.deadline - now)
-    return f"{event.start.strftime('%d.%m.%Y')}: [{event.name}](<{event.url}>) ({remaining} zum Zusagen)"
+    if event.deadline > now:
+        remaining = humanize.naturaldelta(event.deadline - now)
+        remaining_str = f'{remaining} zum Zusagen'
+    else:
+        remaining_str = 'Zeit abgelaufen'
+    return f"{event.start.strftime('%d.%m.%Y')}: [{event.name}](<{event.url}>) ({remaining_str})"
