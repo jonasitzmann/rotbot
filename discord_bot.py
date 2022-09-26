@@ -42,7 +42,7 @@ async def on_ready():
 async def remember_candidates(time_left=None):
     now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
     if time_left is None:
-        time_left = datetime.timedelta(minutes=10t)
+        time_left = datetime.timedelta(hours=1)
         # time_left = datetime.timedelta(minutes=154)
     for event in list(url2event.values()):
         time_left_e = event.deadline - now
