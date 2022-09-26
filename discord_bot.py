@@ -42,14 +42,15 @@ async def on_ready():
 async def remember_candidates(time_left=None):
     now = datetime.datetime.now()
     if time_left is None:
-        time_left = datetime.timedelta(hours=2)
+        time_left = datetime.timedelta(minutes=20)
         # time_left = datetime.timedelta(minutes=154)
     for event in list(url2event.values()):
         time_left_e = event.deadline - now
         delta = humanize.naturaltime(time_left_e)
         if time_left < time_left_e < time_left + update_interval:
             participants = get_event_participants(event, [P.Circle])
-            await splus2discord['Jonas Sitzmann'].send(f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}')
+            if participants:
+                await splus2discord['Jonas Sitzmann'].send(f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}')
             for p in participants:
                 name = discord2splus[p].split(' ')[0]
                 msg = f'Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name}\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast.'
@@ -80,7 +81,7 @@ async def get_appointments(ctx: ApplicationContext):
     if splus_name := discord2splus.get(member, None):
         if splus_name in participation.columns:
             df = participation[['url', splus_name]]
-            # df = df[df[splus_name] == P.Circle.name.lower()]
+            df = df[df[splus_name] == P.Circle.name.lower()]
             trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
