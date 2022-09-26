@@ -50,7 +50,9 @@ async def remember_candidates(time_left=None):
         if time_left < time_left_e < time_left + update_interval:
             participants = get_event_participants(event, [P.Circle])
             if participants:
-                await splus2discord['Jonas Sitzmann'].send(f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}')
+                msg = f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}'
+                print(msg)
+                await splus2discord['Jonas Sitzmann'].send(msg)
             for p in participants:
                 name = discord2splus[p].split(' ')[0]
                 msg = f'Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name}\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast.'
