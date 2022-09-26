@@ -23,7 +23,7 @@ def login():
 def save_participation(weeks=20):
     if s is None:
         login()
-    now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
+    now = datetime.now() + timedelta(hours=2)  # todo timezones!
     start_date = now.strftime('%Y-%m-%d')
     end_date = (now + timedelta(weeks=weeks)).strftime('%Y-%m-%d')
     participation_url = 'https://www.spielerplus.de/participation'
