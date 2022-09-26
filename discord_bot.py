@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 import discord
 import humanize
 from discord.commands import ApplicationContext
@@ -8,6 +9,7 @@ import splus
 import os
 import utils
 import datetime
+from datetime import timedelta
 import pickle
 from parse import Participation as P, EventType as E, Event
 import nest_asyncio
@@ -16,7 +18,7 @@ intents = discord.Intents.all()
 s = splus.login()
 token = os.environ['BOTTOKEN']
 bot = discord.Bot(intents=intents)
-update_interval = datetime.timedelta(minutes=5)
+update_interval = datetime.timedelta(minutes=7)
 
 
 id_players_info = '1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE'
@@ -39,23 +41,26 @@ async def on_ready():
     update_df.start()
 
 
-async def remember_candidates(time_left=None):
+async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
     now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
-    if time_left is None:
-        time_left = datetime.timedelta(hours=1)
-        # time_left = datetime.timedelta(minutes=154)
-    for event in list(url2event.values()):
+    if dt is None:
+        dt = datetime.timedelta(hours=1)
+    events: List[Event] = list(url2event.values())
+    if exclude_trainigs:
+        events = [e for e in events if e.type != E.TRAINING]
+    for event in events:
         time_left_e = event.deadline - now
         delta = humanize.naturaltime(time_left_e)
-        if time_left < time_left_e < time_left + update_interval:
+        if dt < time_left_e < dt + update_interval:
             participants = get_event_participants(event, [P.Circle])
             if participants:
-                msg = f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}'
+                msg = f'sending reminders for {event.name} on {humanize.naturaldate(event.start)} to:\n{",".join([p.name for p in participants])}'
                 print(msg)
                 await splus2discord['Jonas Sitzmann'].send(msg)
             for p in participants:
                 name = discord2splus[p].split(' ')[0]
-                msg = f'Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name}\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast.'
+                msg = f'Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name} ({humanize.naturaldate(event.start)})\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast.'
+                # print(msg)
                 await p.send(msg)
 
 
@@ -74,7 +79,13 @@ async def update_df():
             url2event, participation = pickle.load(f)
     else:
         url2event, participation = parse.get_participation()
-    await remember_candidates()
+    for args in [
+        dict(dt=timedelta(hours=1)),
+        dict(dt=timedelta(hours=6)),
+        dict(dt=timedelta(days=1)),
+        dict(dt=timedelta(days=5), exclude_trainigs=True),
+    ]:
+        await remember_candidates(**args)
 
 
 @bot.slash_command(name='tragdichein', description='Listet SpielerPlus Termine auf, zu denen du dich noch nicht eingetragen hast')

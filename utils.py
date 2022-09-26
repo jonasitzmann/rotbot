@@ -1,11 +1,9 @@
 import os
-
 import humanize
 humanize.activate('de_DE')
 import pandas as pd
 import wget
 import datetime
-
 
 def download_google_sheet_as_df(id, filename='temp.csv', gid=None):
     if os.path.isfile(filename):
