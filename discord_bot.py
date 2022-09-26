@@ -47,7 +47,7 @@ async def remember_candidates(time_left=None):
     for event in list(url2event.values()):
         time_left_e = event.deadline - now
         delta = humanize.naturaltime(time_left_e)
-        if (time_left - update_interval) < time_left_e < time_left:
+        if time_left < time_left_e < time_left + update_interval:
             participants = get_event_participants(event, [P.Circle])
             await splus2discord['Jonas Sitzmann'].send(f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}')
             for p in participants:
