@@ -1,4 +1,6 @@
+import asyncio
 import discord
+import humanize
 from discord.commands import ApplicationContext
 from discord.ext import tasks
 import parse
@@ -7,11 +9,15 @@ import os
 import utils
 import datetime
 import pickle
-from parse import Participation as P, EventType as E
+from parse import Participation as P, EventType as E, Event
+import nest_asyncio
+nest_asyncio.apply()
 intents = discord.Intents.all()
 s = splus.login()
 token = os.environ['BOTTOKEN']
 bot = discord.Bot(intents=intents)
+update_interval = datetime.timedelta(minutes=5)
+
 
 id_players_info = '1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE'
 players_info = utils.download_google_sheet_as_df(id_players_info).dropna(axis=0)
@@ -28,12 +34,27 @@ def get_user(discord_name):
 async def on_ready():
     global splus2discord, discord2splus, members
     members = bot.guilds[0].members
-    if debug:
-        load_data_debug()
-    else:
-        update_df.start()
     splus2discord = {r.splus_name: get_user(r.discord_name) for i, r in players_info.iterrows()}
     discord2splus = {v: k for k, v in splus2discord.items()}
+    update_df.start()
+
+
+async def remember_candidates(time_left=None):
+    now = datetime.datetime.now()
+    if time_left is None:
+        time_left = datetime.timedelta(hours=2)
+        # time_left = datetime.timedelta(minutes=154)
+    for event in list(url2event.values()):
+        time_left_e = event.deadline - now
+        if (time_left - update_interval) < time_left_e < time_left:
+            participants = get_event_participants(event, [P.Circle])
+            await splus2discord['Jonas Sitzmann'].send(f'sending reminders for {event} to:\n{",".join([p.name for p in participants])}')
+            for p in participants:
+                name = discord2splus[p].split(' ')[0]
+                delta = humanize.naturaltime(time_left_e)
+                msg = f'Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name}\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>'
+                await p.send(msg)
+
 
 
 def filter_trainings_func(row):
@@ -42,22 +63,15 @@ def filter_trainings_func(row):
     return days < 14
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(seconds=update_interval.total_seconds())
 async def update_df():
     global url2event, participation
-    url2event, participation = parse.get_participation()
-
-
-def load_data_debug():
-    global url2event, participation
-    filename = 'debug_data.pck'
-    if os.path.exists(filename):
-        with open(filename, 'rb') as f:
+    if debug:
+        with open('debug_data.pck', 'rb') as f:
             url2event, participation = pickle.load(f)
     else:
-        with open(filename, 'wb') as f:
-            pickle.dump(parse.get_participation(), f)
-
+        url2event, participation = parse.get_participation()
+    await remember_candidates()
 
 
 @bot.slash_command(name='tragdichein', description='Listet SpielerPlus Termine auf, zu denen du dich noch nicht eingetragen hast')
@@ -83,20 +97,22 @@ async def get_event_names(ctx):
     return ['Nächstes Training', *non_trainings]
 
 
-def get_event_participants(event_name, participation_types=None):
+def get_event_participants(event, participation_types=None):
     if participation_types is None:
         participation_types = [P.YES]
     participation_types = [p.name.lower() for p in participation_types]
-    if event_name == 'Nächstes Training':
+    if isinstance(event, Event):
+        url = event.url
+    elif event == 'Nächstes Training':
         trainings = [e for e in url2event.values() if e.type == E.TRAINING]
         training = sorted(trainings, key=lambda e: e.start)[0]
         url = training.url
     else:
-        url = [e.url for e in url2event.values() if e.name == event_name][0]
+        url = [e.url for e in url2event.values() if e.name == event][0]
     df = participation[participation.url == url].T
     df = df[df.iloc[:, 0].isin(participation_types)]
     names = df.index.tolist()
-    discordnames = [splus2discord[n].mention for n in names if n in splus2discord]
+    discordnames = [splus2discord[n] for n in names if n in splus2discord]
     return discordnames
 
 janein = {'ja': True, 'nein': False}
@@ -110,7 +126,7 @@ async def autocomplete_example(
     yes: discord.Option(str, "", name='ja', autocomplete=lambda x: ['nein']) = 'ja',
 ):
     participation_types = [P.YES]*janein[yes] + [P.MAYBE]*janein[maybe] + [P.Circle]*janein[no_response]
-    discordnames = get_event_participants(event, participation_types=participation_types)
+    discordnames = [p.mention for p in get_event_participants(event, participation_types=participation_types)]
     if discordnames:
         await ctx.respond(' '.join(discordnames))
     else:
