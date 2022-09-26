@@ -42,7 +42,7 @@ async def on_ready():
 async def remember_candidates(time_left=None):
     now = datetime.datetime.now()
     if time_left is None:
-        time_left = datetime.timedelta(minutes=20)
+        time_left = datetime.timedelta(minutes=15)
         # time_left = datetime.timedelta(minutes=154)
     for event in list(url2event.values()):
         time_left_e = event.deadline - now
