@@ -50,7 +50,7 @@ async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
         events = [e for e in events if e.type != E.TRAINING]
     for event in events:
         time_left_e = event.deadline - now
-        delta = humanize.naturaltime(time_left_e)
+        delta = humanize.naturaldelta(time_left_e)
         if dt < time_left_e < dt + update_interval:
             participants = get_event_participants(event, [P.Circle])
             if participants:
