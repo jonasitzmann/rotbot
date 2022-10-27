@@ -81,7 +81,7 @@ async def update_df():
         url2event, participation = parse.get_participation()
     for args in [
         dict(dt=timedelta(hours=1)),
-        dict(dt=timedelta(hours=6)),
+        dict(dt=timedelta(hours=4)),
         dict(dt=timedelta(days=1)),
         dict(dt=timedelta(days=5), exclude_trainigs=True),
     ]:
