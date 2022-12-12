@@ -46,6 +46,7 @@ async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
     if dt is None:
         dt = datetime.timedelta(hours=1)
     events: List[Event] = list(url2event.values())
+    events = [e for e in events if e is not None]
     if exclude_trainigs:
         events = [e for e in events if e.type != E.TRAINING]
     for event in events:
