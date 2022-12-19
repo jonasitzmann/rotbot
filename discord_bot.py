@@ -139,7 +139,7 @@ async def autocomplete_example(
     yes: discord.Option(str, "", name='ja', autocomplete=lambda x: ['nein']) = 'ja',
 ):
     participation_types = [P.YES]*janein[yes] + [P.MAYBE]*janein[maybe] + [P.Circle]*janein[no_response]
-    discordnames = [p.mention for p in get_event_participants(event, participation_types=participation_types)]
+    discordnames = [p.mention for p in get_event_participants(event, participation_types=participation_types) if p is not None]
     if discordnames:
         await ctx.respond(' '.join(discordnames))
     else:
