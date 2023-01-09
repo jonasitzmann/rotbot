@@ -56,7 +56,7 @@ async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
             participants = get_event_participants(event, [P.Circle])
             participants = [p for p in participants if p is not None]
             if participants:
-                msg = f'sending reminders for {event.name if event else ''} on {humanize.naturaldate(event.start)} to:\n{",".join([p.name for p in participants])}'
+                msg = f'sending reminders for {event.name if event else ""} on {humanize.naturaldate(event.start)} to:\n{",".join([p.name for p in participants])}'
                 print(msg)
                 await splus2discord['Jonas Sitzmann'].send(msg)
             for p in participants:
