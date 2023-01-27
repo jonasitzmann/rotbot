@@ -131,10 +131,17 @@ def get_event_participants(event, participation_types=None):
 
 janein = {'ja': True, 'nein': False}
 
+def autocomplete_name(ctx):
+    names = list(splus2discord.keys())
+    arg = ctx.current_argument
+    if arg:
+        names = [n for n in names if n.lower().startswith(arg.lower())]
+    return names
+
 @bot.slash_command(name='pn')
 async def write_personal_message(
     ctx: discord.ApplicationContext,
-    target_name: discord.Option(str, '', name='an', autocomplete=lambda ctx: [k for k in splus2discord.keys()]),
+    target_name: discord.Option(str, '', name='an', autocomplete=autocomplete_name),
     message: discord.Option(str, '', name='nachricht')
 ):
     member = splus2discord[target_name]
