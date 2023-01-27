@@ -134,7 +134,7 @@ janein = {'ja': True, 'nein': False}
 @bot.slash_command(name='pn')
 async def write_personal_message(
     ctx: discord.ApplicationContext,
-    target_name: discord.Option(str, '', name='an', autocomplete=lambda x: [k for k in splus2discord.keys() if k.lower().startswith(x.lower())]),
+    target_name: discord.Option(str, '', name='an', autocomplete=lambda ctx: [k for k in splus2discord.keys()]),
     message: discord.Option(str, '', name='nachricht')
 ):
     member = splus2discord[target_name]
