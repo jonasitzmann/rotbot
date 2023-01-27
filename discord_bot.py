@@ -135,7 +135,7 @@ janein = {'ja': True, 'nein': False}
 async def write_personal_message(
     ctx: discord.ApplicationContext,
     target_name: discord.Option(str, '', name='an', autocomplete=list(splus2discord.keys())),
-    message: discord.Option(str, '', name='Nachricht')
+    message: discord.Option(str, '', name='nachricht')
 ):
     member = splus2discord[target_name]
     await member.send(message)
