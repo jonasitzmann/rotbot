@@ -133,7 +133,7 @@ janein = {'ja': True, 'nein': False}
 
 def autocomplete_name(ctx):
     names = list(splus2discord.keys())
-    arg = ctx.current_argument
+    arg = ctx.value
     if arg:
         names = [n for n in names if n.lower().startswith(arg.lower())]
     return names
