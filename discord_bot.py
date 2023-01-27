@@ -131,6 +131,17 @@ def get_event_participants(event, participation_types=None):
 
 janein = {'ja': True, 'nein': False}
 
+@bot.slash_command(name='pn)
+async def write_personal_message(
+    ctx: discord.ApplicationContext,
+    target_name: discord.Option(str, '', name='an', autocomplete=list(splus2discord.keys())),
+    message: discord.Option(str, '', name='Nachricht')
+):
+    member = splus2discord[target_name]
+    await member.send(message)
+    await ctx.respond('ok', ephemeral=True)
+    
+
 @bot.slash_command(name='mention')
 async def autocomplete_example(
     ctx: discord.ApplicationContext,
