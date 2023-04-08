@@ -9,4 +9,4 @@ db = redis.Redis(
   )
 
 def get_key_names():
-    return list(db.get('keys')).split(',')
+    return list(db.get('keys').split(','))
