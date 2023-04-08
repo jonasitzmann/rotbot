@@ -13,6 +13,7 @@ from datetime import timedelta
 import pickle
 from parse import Participation as P, EventType as E, Event
 import nest_asyncio
+from database import db, get_key_names
 nest_asyncio.apply()
 intents = discord.Intents.all()
 s = splus.login()
@@ -164,11 +165,19 @@ async def autocomplete_example(
         await ctx.respond('could not find anyone', ephemeral=True)
 
 
-@bot.slash_command(name='key_to')
+@bot.slash_command(name='schüsselübergabe')
 async def key_to(
     ctx: discord.ApplicationContext,
-    key_name: discord.Option(str, '', autocomplete= lambda x: 'Rote Wiese,Westpark,Halle'.split(',')),
-    receiver: discord.Option(str, '', autocomplete=autocomplete_name)
+    key_name: discord.Option(str, '', autocomplete=get_key_names, name='Schlüssel'),
+    receiver: discord.Option(str, '', autocomplete=autocomplete_name, name='Emfänger*in')
 ):
+    db.set(key_name, receiver)
+    sender_name = discord2splus.get(ctx.author, 'Unbekannt')
+    await splus2discord[receiver].send(f'{sender_name} hat dir den Schlüssel {key_name} übergeben.')
     await ctx.respond(f'{receiver} hat jetzt den Schüssel "{key_name}"')
+
+@bot.slash_command(name='wo sind die schlüssel?')
+async def where_are_the_keys(ctx:discord.ApplicationContext):
+    await ctx.respond('\n'.join([f"{k}: {db.get(k)}" for k in get_key_names()]))
+
 bot.run(token)

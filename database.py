@@ -1,23 +1,10 @@
-import sqlalchemy as db
+import redis
 import os
 
-from discord import player
+db = redis.Redis(
+  host='redis-19410.c265.us-east-1-2.ec2.cloud.redislabs.com',
+  port=19410,
+  password=os.environ.get('REDISPWD'))
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-engine = db.create_engine(DATABASE_URL, echo=False)
-meta = db.MetaData()
-connection = engine.connect()
-
-def create_players_table():
-    players_tab = 'players'
-    players = db.Table(
-        players_tab,
-        meta,
-        db.Column('id', db.Integer, primary_key=True),
-        db.Column('discord_id', db.Integer),
-        db.Column('splus_id', db.Integer),
-        db.Column('name', db.String)
-    )
-    meta.create_all(engine)
+def get_key_names():
+    return db.get('keys')
