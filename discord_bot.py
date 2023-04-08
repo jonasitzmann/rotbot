@@ -178,6 +178,6 @@ async def key_to(
 
 @bot.slash_command(name='wosinddieschluessel')
 async def where_are_the_keys(ctx:discord.ApplicationContext):
-    await ctx.respond('\n'.join([f"{k}: {db.get(k)}" for k in get_key_names()]))
+    await ctx.respond('\n'.join([f"{k}: {str(db.get(k))}" for k in get_key_names()]))
 
 bot.run(token)
