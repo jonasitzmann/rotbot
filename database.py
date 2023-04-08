@@ -8,5 +8,5 @@ db = redis.Redis(
   decode_responses=True
   )
 
-def get_key_names():
+def get_key_names(ctx=None):
     return list(db.get('keys').split(','))
