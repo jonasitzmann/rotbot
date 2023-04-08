@@ -176,7 +176,7 @@ async def key_to(
     await splus2discord[receiver].send(f'{sender_name} hat dir den Schlüssel {key_name} übergeben.')
     await ctx.respond(f'{receiver} hat jetzt den Schüssel "{key_name}"')
 
-@bot.slash_command(name='wo_sind_die_schlüssel?')
+@bot.slash_command(name='wosinddieschlüssel')
 async def where_are_the_keys(ctx:discord.ApplicationContext):
     await ctx.respond('\n'.join([f"{k}: {db.get(k)}" for k in get_key_names()]))
 
