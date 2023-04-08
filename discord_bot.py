@@ -168,8 +168,8 @@ async def autocomplete_example(
 @bot.slash_command(name='schüsselübergabe')
 async def key_to(
     ctx: discord.ApplicationContext,
-    key_name: discord.Option(str, '', autocomplete=get_key_names, name='Schlüssel'),
-    receiver: discord.Option(str, '', autocomplete=autocomplete_name, name='Emfänger*in')
+    key_name: discord.Option(str, '', autocomplete=get_key_names, name='schlüssel'),
+    receiver: discord.Option(str, '', autocomplete=autocomplete_name, name='emfänger*in')
 ):
     db.set(key_name, receiver)
     sender_name = discord2splus.get(ctx.author, 'Unbekannt')
