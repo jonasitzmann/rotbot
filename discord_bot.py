@@ -164,4 +164,11 @@ async def autocomplete_example(
         await ctx.respond('could not find anyone', ephemeral=True)
 
 
+@bot.slash_command(name='key_to')
+async def key_to(
+    ctx: discord.ApplicationContext,
+    key_name: discord.Option(str, '', autocomplete= lambda x: 'Rote Wiese,Westpark,Halle'.split(',')),
+    receiver: discord.Option(str, '', autocomplete=autocomplete_name)
+):
+    await ctx.respond(f'{receiver} hat jetzt den Schüssel "{key_name}"')
 bot.run(token)
