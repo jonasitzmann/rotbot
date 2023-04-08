@@ -7,4 +7,4 @@ db = redis.Redis(
   password=os.environ.get('REDISPWD'))
 
 def get_key_names():
-    return db.get('keys')
+    return list(db.get('keys').split(','))
