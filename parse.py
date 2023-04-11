@@ -3,20 +3,22 @@ import re
 from enum import Enum, auto
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 import splus
 from functools import cache
+import config
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
 
 
-class Participation(Enum):
-    YES = auto()
+class Participation(Enum):  # ordered by probability of participation
     NO = auto()
+    Cross = auto()
+    EXCLAMINTAION = auto()
     MAYBE = auto()
     Circle = auto()
-    EXCLAMINTAION = auto()
-    Cross = auto()
+    YES = auto()
 
 
 class EventType(Enum):
@@ -42,32 +44,33 @@ tag_map = {
     'fa-cross': Participation.Cross
 }
 
+def get_ttl_hash():
+    return round(time.time() / config.d_update_events.total_seconds())
 
-def get_participation(reload=True):
-    if reload:
-        splus.save_participation()
-    with open('splus.html', 'r') as f:
-            soup = BeautifulSoup(f, 'html.parser')
+
+def get_participation():
+    soup = splus.get_participation_website()
     table_div = soup.find("div", {"class": "wrap"}).find("div", {"class": "container"})\
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
-    events = get_events(table_div)
-    url2events = {e.url: e for e in events}
+    urls = get_event_urls(table_div)
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations).applymap(lambda x: x.name.lower())
-    participation_df['url'] = url2events.keys()
+    participation_df['url'] = urls
+    url2events = {url: get_event(url, get_ttl_hash()) for url in urls}
+    print('updated participations')
     return url2events, participation_df.iloc[::-1]
 
-def get_events(table_div):
-    events = []
+
+def get_event_urls(table_div):
+    urls = []
     table = table_div.find('table', {'class': 'table statistics'})
     for row in table.find_all('th'):
         a = row.find('a')
         if a:
             link = a['href']
             url = f'https://www.spielerplus.de' + link
-            event = get_event(url)
-            events.append(event)
-    return events
+            urls.append(url)
+    return urls
 
 
 @dataclass
@@ -77,6 +80,7 @@ class Event:
     start: datetime
     deadline: datetime
     url: str
+    location: str
 
 def get_form_entry(soup, id):
     return soup.find('input', dict(id=id)).get('value')
@@ -86,7 +90,7 @@ def str2datetime(x):
 
 
 @cache
-def get_event(url):
+def get_event(url, ttl_hash):  # ttl_has is for updating the cash after some time
     update_url = url.replace('view', 'update')
     e_type = str2e_type[url.rsplit('/', 2)[1]]
     soup = splus.get_html(update_url)
@@ -98,8 +102,10 @@ def get_event(url):
     start_date = get_form_entry(soup, 'datetime-startdate-disp')
     start_time = get_form_entry(soup, 'datetime-starttime-disp')
     deadline = str2datetime(get_form_entry(soup, e_type_str + '-participationdate-disp'))
+    location = get_form_entry(soup, 'teamlocation-autocomplete')
     start = str2datetime(f'{start_date} {start_time}')
-    event = Event(name, e_type, start, deadline, url)
+    event = Event(name, e_type, start, deadline, url, location)
+    print(f'updated {e_type.name} {name} on {start}')
     return event
 
 
@@ -145,7 +151,5 @@ def get_names(table_div):
 
 if __name__ == '__main__':
     # event = get_event('https://www.spielerplus.de/tournament/view?id=761682')
-    # event = get_event('https://www.spielerplus.de/training/view?id=35670975')
-    # print(event)
-    urls, x = get_participation(reload=False)
-    print(urls)
+    event = get_event('https://www.spielerplus.de/training/view?id=35670975')
+    print(event)

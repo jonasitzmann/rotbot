@@ -1,7 +1,7 @@
-import asyncio
 from typing import List
 import discord
 import humanize
+import pandas as pd
 from discord.commands import ApplicationContext
 from discord.ext import tasks
 import parse
@@ -14,6 +14,8 @@ import pickle
 from parse import Participation as P, EventType as E, Event
 import nest_asyncio
 from database import db, get_key_names
+import config
+import numpy as np
 nest_asyncio.apply()
 intents = discord.Intents.all()
 s = splus.login()
@@ -24,7 +26,7 @@ update_interval = datetime.timedelta(minutes=7)
 
 id_players_info = '1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE'
 players_info = utils.download_google_sheet_as_df(id_players_info).dropna(axis=0)
-splus2discord, discord2splus, members, participation, url2event = {}, {}, [], None, {}
+splus2discord, discord2splus, members, participation, url2event, old_participation = {}, {}, [], None, {}, None
 # debug = True
 debug = False
 
@@ -53,7 +55,7 @@ async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
     for event in events:
         time_left_e = event.deadline - now
         delta = humanize.naturaldelta(time_left_e)
-        if dt < time_left_e < dt + update_interval:
+        if dt < time_left_e < dt + config.d_send_reminders:
             participants = get_event_participants(event, [P.Circle])
             participants = [p for p in participants if p is not None]
             if participants:
@@ -74,13 +76,14 @@ def filter_trainings_func(row):
     return days < 14
 
 
-@tasks.loop(seconds=update_interval.total_seconds())
+@tasks.loop(seconds=config.d_send_reminders.total_seconds())
 async def update_df():
-    global url2event, participation
+    global url2event, participation, old_participation
     if debug:
         with open('debug_data.pck', 'rb') as f:
             url2event, participation = pickle.load(f)
     else:
+        old_participation = participation
         url2event, participation = parse.get_participation()
     for args in [
         dict(dt=timedelta(hours=2)),
@@ -88,6 +91,32 @@ async def update_df():
         dict(dt=timedelta(days=5), exclude_trainigs=True),
     ]:
         await remember_candidates(**args)
+    if old_participation is not None:
+        await check_key_diff_based(participation, old_participation)
+part2num = {p.name.lower(): p.value for p in P}
+
+async def check_key_diff_based(participation: pd.DataFrame, old_participation: pd.DataFrame):
+    p_new, p_old = (x.set_index('url') for x in (participation, old_participation))
+    names = [col for col in p_new.columns if col in p_old.columns]
+    urls = [url for url in p_new.index if url in p_old.index]
+    p_new, p_old = (p.loc[urls, names] for p in (p_new, p_old))
+    p_new_np, p_old_np = (p.applymap(lambda x: part2num[x]).to_numpy() for p in [p_new, p_old])
+    diff = p_new_np - p_old_np
+    changed_url_idxs, changed_name_idxs = np.where(diff < 0)
+    for changed_url_idx, changed_name_idx in zip(changed_url_idxs, changed_name_idxs):
+        name, url = names[changed_name_idx], urls[changed_url_idx]
+        event = url2event[url]
+        part_new, part_old = (P(arr[changed_url_idx, changed_name_idx]).name for arr in [p_new_np, p_old_np])
+        key = get_key_for_event(event)
+        if key is not None:
+            key_owner = db.get(key)
+            if key_owner == name:
+                print(f'{name} hat sich für {event.name} am {event.start} von "{part_old}" auf "{part_new}" gesetzt, hat aber den Schlüssel {key}!')
+                member = splus2discord[name]
+                await member.send(
+                    f'Du hast dich für {event.name} am {event.start} von f"{part_old}" auf f"{part_new}" gesetzt, hast aber Schlüssel "{key}!"'
+                )
+
 
 
 @bot.slash_command(name='tragdichein', description='Listet SpielerPlus Termine auf, zu denen du dich noch nicht eingetragen hast')
@@ -95,9 +124,9 @@ async def get_appointments(ctx: ApplicationContext):
     member = discord.utils.get(members, id=ctx.user.id)
     if splus_name := discord2splus.get(member, None):
         if splus_name in participation.columns:
-            df = participation[['url', splus_name]]
-            df = df[df[splus_name] == P.Circle.name.lower()]
-            trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
+            df = participation[splus_name]
+            df = df[df == P.Circle.name.lower()]
+            trainings_mask = df.apply(lambda x: url2event[x.index].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
@@ -110,8 +139,14 @@ async def get_event_names(ctx):
     non_trainings = [e.name for e in sorted(url2event.values(), key=lambda e: e.start) if e.type != E.TRAINING]
     return ['Nächstes Training', *non_trainings]
 
+def training2str(training: Event):
+    return f'Training {training.start}'
 
-def get_event_participants(event, participation_types=None):
+async def get_training_names(ctx):
+    return [training2str(e) for e in sorted(url2event.values(), key=lambda e: e.start) if e.type == E.TRAINING]
+
+
+def get_event_participants(event, participation_types=None, splus_names=False):
     if participation_types is None:
         participation_types = [P.YES]
     participation_types = [p.name.lower() for p in participation_types]
@@ -126,6 +161,8 @@ def get_event_participants(event, participation_types=None):
     df = participation[participation.url == url].T
     df = df[df.iloc[:, 0].isin(participation_types)]
     names = df.index.tolist()
+    if splus_names:
+        return names
     discordnames = [splus2discord[n] for n in names if n in splus2discord]
     return discordnames
 
@@ -179,5 +216,47 @@ async def key_to(
 @bot.slash_command(name='wosinddieschluessel')
 async def where_are_the_keys(ctx:discord.ApplicationContext):
     await ctx.respond('\n'.join([f"{k}: {db.get(k)}" for k in get_key_names()]))
+
+
+location2key = {
+    'Rote Wiese': 'Rote Wiese',
+    'Rheinring': 'Westpark',
+    'Sackring': 'Halle'
+}
+
+
+@bot.slash_command(name='schluesselda')
+async def bot_key_present(
+        ctx: discord.ApplicationContext,
+        event_name: discord.Option(str, "", autocomplete=get_training_names, name='event'),
+):
+    possible_training_event = [e for e in url2event.values() if e.type == E.TRAINING and training2str(e) == event_name]
+    if len(possible_training_event) == 1:
+        response = is_key_present(possible_training_event[0])
+    elif len(possible_training_event) > 1:
+        response = 'mehrere passende Trainings gefunden'
+    elif len(possible_training_event) == 0:
+        response = 'kein passendes Training gefunden'
+    await ctx.respond(response)
+
+def get_key_for_event(event: Event):
+    event_location = event.location
+    if event_location is not None:
+        possible_keys = [v for k, v in location2key.items() if (k in event_location)]
+        assert len(possible_keys) <= 1, f'to many possible keys for location {event_location}: {possible_keys}'
+        if possible_keys:
+            key = possible_keys[0]
+            return key
+    return None
+
+
+def is_key_present(event:Event):
+    key = get_key_for_event(event)
+    if key is None:
+        return
+    key_owner_splus = db.get(key)
+    participants = get_event_participants(event, splus_names=True)
+    return key_owner_splus in participants
+
 
 bot.run(token)
