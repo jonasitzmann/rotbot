@@ -10,6 +10,8 @@ import config
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
+from cachetools.func import ttl_cache
+from utils import run_async
 
 
 class Participation(Enum):  # ordered by probability of participation
@@ -44,11 +46,10 @@ tag_map = {
     'fa-cross': Participation.Cross
 }
 
-def get_ttl_hash():
-    return round(time.time() / config.d_update_events.total_seconds())
 
-
-def get_participation():
+def update_participation(url2events=None):
+    if url2events is None:
+        url2events = {}
     soup = splus.get_participation_website()
     table_div = soup.find("div", {"class": "wrap"}).find("div", {"class": "container"})\
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
@@ -56,9 +57,16 @@ def get_participation():
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations).applymap(lambda x: x.name.lower())
     participation_df['url'] = urls
-    url2events = {url: get_event(url, get_ttl_hash()) for url in urls}
+    for url in urls:
+        update_event(url, url2events)
     print('updated participations')
+    participation_df = participation_df.loc[participation_df['url'].isin(list(url2events.keys()))]
     return url2events, participation_df.iloc[::-1]
+
+
+@run_async()
+def update_event(url, url2events):
+    url2events[url] = get_event(url)
 
 
 def get_event_urls(table_div):
@@ -89,8 +97,8 @@ def str2datetime(x):
     return datetime.strptime(x, '%d.%m.%Y %H:%M')
 
 
-@cache
-def get_event(url, ttl_hash):  # ttl_has is for updating the cash after some time
+@ttl_cache(maxsize=config.event_cache_size, ttl=config.event_ttl)
+def get_event(url):
     update_url = url.replace('view', 'update')
     e_type = str2e_type[url.rsplit('/', 2)[1]]
     soup = splus.get_html(update_url)

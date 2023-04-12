@@ -46,13 +46,13 @@ async def on_ready():
 
 async def remember_candidates(dt: timedelta=None, exclude_trainigs=False):
     now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
-    if dt is None:
-        dt = datetime.timedelta(hours=1)
     events: List[Event] = list(url2event.values())
     events = [e for e in events if e is not None]
     if exclude_trainigs:
         events = [e for e in events if e.type != E.TRAINING]
     for event in events:
+        # for person
+        #    for dt in dts[person]
         time_left_e = event.deadline - now
         delta = humanize.naturaldelta(time_left_e)
         if dt < time_left_e < dt + config.d_send_reminders:
@@ -84,7 +84,7 @@ async def update_df():
             url2event, participation = pickle.load(f)
     else:
         old_participation = participation
-        url2event, participation = parse.get_participation()
+        url2event, participation = parse.update_participation(url2event)
     for args in [
         dict(dt=timedelta(hours=2)),
         dict(dt=timedelta(days=1)),
@@ -114,7 +114,7 @@ async def check_key_diff_based(participation: pd.DataFrame, old_participation: p
                 print(f'{name} hat sich für {event.name} am {event.start} von "{part_old}" auf "{part_new}" gesetzt, hat aber den Schlüssel {key}!')
                 member = splus2discord[name]
                 await member.send(
-                    f'Du hast dich für {event.name} am {event.start} von f"{part_old}" auf f"{part_new}" gesetzt, hast aber Schlüssel "{key}!"'
+                    f'Du hast dich für {event.name} am {event.start} von "{part_old}" auf "{part_new}" gesetzt, hast aber Schlüssel "{key}!"'
                 )
 
 
@@ -124,9 +124,9 @@ async def get_appointments(ctx: ApplicationContext):
     member = discord.utils.get(members, id=ctx.user.id)
     if splus_name := discord2splus.get(member, None):
         if splus_name in participation.columns:
-            df = participation[splus_name]
-            df = df[df == P.Circle.name.lower()]
-            trainings_mask = df.apply(lambda x: url2event[x.index].type == E.TRAINING, axis=1)
+            df = participation[['url', splus_name]]
+            df = df[df[splus_name] == P.Circle.name.lower()]
+            trainings_mask = df.apply(lambda x: url2event[x.url].type == E.TRAINING, axis=1)
             trainings_df = df[trainings_mask]
             trainings_df = trainings_df[trainings_df.apply(filter_trainings_func, axis=1)]
             non_training_df = df[~trainings_mask]
