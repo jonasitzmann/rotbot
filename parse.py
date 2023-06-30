@@ -47,10 +47,10 @@ tag_map = {
 }
 
 
-def update_participation(url2events=None):
+def update_participation(url2events=None, future_weeks=20, past_weeks=0, update_async=True, start_date=None):
     if url2events is None:
         url2events = {}
-    soup = splus.get_participation_website()
+    soup = splus.get_participation_website(weeks=future_weeks, weeks_before=past_weeks, start_date=start_date)
     table_div = soup.find("div", {"class": "wrap"}).find("div", {"class": "container"})\
         .find("div", {"class": "tab-content"}).find("div", {"class": "tab-pane active"}).find("div", {"class": "table-responsive"})
     urls = get_event_urls(table_div)
@@ -58,14 +58,17 @@ def update_participation(url2events=None):
     participation_df = pd.DataFrame(individual_participations).applymap(lambda x: x.name.lower())
     participation_df['url'] = urls
     for url in urls:
-        update_event(url, url2events)
+        if update_async:
+            update_event_async(url, url2events)
+        else:
+            url2events[url] = get_event(url)
     print('updated participations')
     participation_df = participation_df.loc[participation_df['url'].isin(list(url2events.keys()))]
     return url2events, participation_df.iloc[::-1]
 
 
 @run_async()
-def update_event(url, url2events):
+def update_event_async(url, url2events):
     url2events[url] = get_event(url)
 
 
@@ -86,12 +89,13 @@ class Event:
     name: str
     type: EventType
     start: datetime
+    end: datetime
     deadline: datetime
     url: str
     location: str
 
-def get_form_entry(soup, id):
-    return soup.find('input', dict(id=id)).get('value')
+def get_form_entry(soup, id, default=None):
+    return soup.find('input', dict(id=id)).get('value', default=default)
 
 def str2datetime(x):
     return datetime.strptime(x, '%d.%m.%Y %H:%M')
@@ -109,10 +113,14 @@ def get_event(url):
         name = get_form_entry(soup, e_type_str + '-name')
     start_date = get_form_entry(soup, 'datetime-startdate-disp')
     start_time = get_form_entry(soup, 'datetime-starttime-disp')
+    end_date = get_form_entry(soup, 'datetime-enddate-disp')
+    end_time = get_form_entry(soup, 'datetime-endtime-disp', default='00:00')
+    if not end_time:
+        end_time = '00:00'
     deadline = str2datetime(get_form_entry(soup, e_type_str + '-participationdate-disp'))
     location = get_form_entry(soup, 'teamlocation-autocomplete')
-    start = str2datetime(f'{start_date} {start_time}')
-    event = Event(name, e_type, start, deadline, url, location)
+    start, end = [str2datetime(f'{date} {time}') for date, time in [(start_date, start_time), (end_date, end_time)]]
+    event = Event(name, e_type, start, end, deadline, url, location)
     print(f'updated {e_type.name} {name} on {start}')
     return event
 

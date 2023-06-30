@@ -22,11 +22,14 @@ def login():
     r = s.post(login_url, data=payload)
 
 
-def get_participation_website(weeks=20, days=0):
+def get_participation_website(weeks=20, days=0, weeks_before=0, start_date=None):
     if s is None:
         login()
     now = datetime.now() + timedelta(hours=2)  # todo timezones!
-    start_date = now.strftime('%Y-%m-%d')
+    if start_date:
+        start_date = datetime(*start_date)
+    else:
+        start_date = (now - timedelta(weeks=weeks_before)).strftime('%Y-%m-%d')
     end_date = (now + timedelta(weeks=weeks, days=days)).strftime('%Y-%m-%d')
     participation_url = 'https://www.spielerplus.de/participation'
     r = s.post(participation_url, data={
