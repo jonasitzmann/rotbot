@@ -12,7 +12,7 @@ def main():
     # plotting preparation
     fig, ax = plt.subplots(figsize=(9, 4), dpi=350)
     cmap = matplotlib.cm.get_cmap("Spectral")
-    url2event, participation = get_participation()
+    url2event, participation = get_participation(download=False)
     urls = participation["url"]
     names = [n for n in participation.columns if n != "url"]
     participation = participation == Participation.YES.name.lower()

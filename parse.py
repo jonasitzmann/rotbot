@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Optional
 from cachetools.func import ttl_cache
 from utils import run_async
+from typing import List
 
 
 class Participation(Enum):  # ordered by probability of participation
@@ -47,21 +48,19 @@ tag_map = {
 }
 
 
+def get_names() -> List[str]:
+    table_div = get_table_div()
+    names = get_names_from_html(table_div)
+    return names
+
+
+
 def update_participation(
     url2events=None, future_weeks=20, past_weeks=0, update_async=True, start_date=None
 ):
     if url2events is None:
         url2events = {}
-    soup = splus.get_participation_website(
-        weeks=future_weeks, weeks_before=past_weeks, start_date=start_date
-    )
-    table_div = (
-        soup.find("div", {"class": "wrap"})
-        .find("div", {"class": "container"})
-        .find("div", {"class": "tab-content"})
-        .find("div", {"class": "tab-pane active"})
-        .find("div", {"class": "table-responsive"})
-    )
+    table_div = get_table_div(future_weeks, past_weeks, start_date)
     urls = get_event_urls(table_div)
     individual_participations = get_participations(table_div)
     participation_df = pd.DataFrame(individual_participations).applymap(
@@ -78,6 +77,20 @@ def update_participation(
         participation_df["url"].isin(list(url2events.keys()))
     ]
     return url2events, participation_df.iloc[::-1]
+
+
+def get_table_div(future_weeks=0, past_weeks=0, start_date=None):
+    soup = splus.get_participation_website(
+        weeks=future_weeks, weeks_before=past_weeks, start_date=start_date
+    )
+    table_div = (
+        soup.find("div", {"class": "wrap"})
+        .find("div", {"class": "container"})
+        .find("div", {"class": "tab-content"})
+        .find("div", {"class": "tab-pane active"})
+        .find("div", {"class": "table-responsive"})
+    )
+    return table_div
 
 
 @run_async()
@@ -178,9 +191,10 @@ def get_dates(table_div):
     return dates
 
 
-def get_names(table_div):
-    names_col = table_div.find("table", {"class": "table statistics fixed-column"})
-    names_list = list(filter(lambda x: x != "", names_col.text.split("\n")))[1:]
+def get_names_from_html(table_div):
+    # names_col = table_div.find("table", {"class": "table statistics fixed-column"})
+    names_col = table_div.find("table", {"class": "table statistics"})
+    names_list = list(filter(lambda x: x != "", names_col.text.split("\n")))[2::2]
     print("\n".join(names_list))
     return names_list
 

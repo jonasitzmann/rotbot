@@ -1,84 +1,93 @@
-discord_nickname,discord_name,splus_name
-Philipp,ablaZe#6539,Philipp Uhlich
-Gerrit,Anti Brumm#1934,
-Erik,Erik#4777,Erik H.
-Finn,SimplePhysic#0974,Finn Sörensen
-kolja,kolja#8285,Kolja
-rudi,rudi#1940,Rudi dP
-Alex,Random#0272,"Götz, Alex"
-matthis,matthis#9831,Matthis Heimberg
-Bierfreund,Droucko#2362,Chris Bierfreund
-Lucex09,Lucex09#0157,Lucas Böhm
-Jannes,Jannes#9472,Jannes Hedden
-Kurassier,Kurassier#3471,Daniel Rode
-Jan,Jan#9295,Jan Meyer
-Jule,Jule#1447,
-Tobi,Vroomfondel#5497,Tobias Lülf
-Jendrik,Rocko17#1020,Jendrik Wolters
-MrBenny,MrBenny#1137,Benjamin
-Tim Kayser,Tim Kayser#9417,Tim Kayser
-Simon,Rheina_Zufall#8796,Simon
-Marcel54,Marcel54#7478,Marcel Klinge
-JonasS,JonasS#4380,Jonas Sitzmann
-Eva,Eva#8698,Eva Nortmann
-Sportler_des_jahres,Sportler_des_jahres#6458,Johannes Pertschy
-lena.simcha,lena.simcha#0755,Lena Schönberg
-greensleave,greensleave#3741,Anna Stella
-jannis00,jannis00#7279,Jannis
-Stefan Böhme,Stefan Böhme#9077,Stefan Böhme
-Zoe,Zoe#5131,Zoe
-beekehrful,beekehrful#0624,Steffi Kehr
-frederikT,frederikT#3948,Frederik Timme
-LeoLa,LeoLa#9877,Leo
-Paul,MuadDib#7448,Paul Busse
-maliin,maliin#1071,Malin
-Marjan,Marjan#8068,Marjan Schubert
-cm,cm#8739,Cyrill
-Chrissy1234,Chrissy1234#0335,Chrissy
-Sören,Sören#4602,Sören Petersen
-Luisa,Luisa#1034,
-boris,boris#2200,Boris Wolf
-Rickie,Rickie#1849,Rickie
-Bussi,Bussi#2084,Julia Busse
-Neumann,Neumann#1138,Neumann
-kadda,kadda#3394,Kathi Wilbrandt
-Florian_2002,Florian_2002#1213,Florian von Malottky
-Silvia,Silvia#8088,Silvia Bussmann
-Jost,Jost#2769,Jost
-Jonas B.,Lunukin#8632,Jonas Böhm
-Annika,Annika#2373,Annika Nolte
-Thies,Thies#0867,Thies Rudnik
-Pätrick,Pätrick#8112,Patrick Jung
-Björn,BRT716#8929,Björn Thiel
-Hannes,Hannes#9774,Hannes Drobek
-ElGu,ElGu#8037,Elena
-Jan,Rotpot#8333,Jan Deines
-Kai-59,Kai-59#8694,Kai Sölter
-Neumann,Neumann#8084,Neumann
-Julia W,Julia W#9392,Julia Woortmann
-Blü,Blü#8627,Annemarie Blücher
-Sasch,Sasch#4877,Sascha
-PaulaKi,PaulaKi#3573,Paula Kisse
-Jean-Michel,Jean-Michel#7145,Michel
-julezinatorix,julezinatorix#9032,Julez
-Lennart,Lennart#4535,Lennart Zech
-,,Romed Berghoff
-,,Anneke Döring
-,,Torsten Schönfeld
-,,Alex Siemon
-,,Bruno Bruns
-,,Clemens
-,,Laura Quante
-,,Jiri Becker
-,,Ferdinand
-Yauanah,tobeOrnottobe#8411,Yauanah Jeyagobi
-,,Lisa Auras
-,,Mak
-,,Nils Hoffmann
-,,Jan-Ole Niet
-,,Franzi Johannes
-,,Nina Pflugrad
-,,Jonas Lütjohann
-,,Lile Alina
-Ingo,Ingo#7370,Ingo Schmiegel
-,,Tschick
+discord_nickname,discord_name,splus_name,new_discord_name
+,,Alex Siemon,21843774
+greensleave,greensleave#3741,Anna Stella,.ildefonso
+,,Anneke Döring,ablaze6539
+Blü,Blü#8627,Annemarie Blücher,Anneke
+Annika,Annika#2373,Annika Nolte,Annika
+MrBenny,MrBenny#1137,Benjamin,antibrumm
+Björn,BRT716#8929,Björn Thiel,beekehrful
+boris,boris#2200,Boris Wolf,Blü
+,,Bruno Bruns,boris
+Bierfreund,Droucko#2362,Chris Bierfreund,brt716
+Chrissy1234,Chrissy1234#0335,Chrissy,Bussi
+,,Clemens,Carmen Albers
+cm,cm#8739,Cyrill,Chrissy1234
+Kurassier,Kurassier#3471,Daniel Rode,christophertietge
+ElGu,ElGu#8037,Elena,cm
+Erik,Erik#4777,Erik H.,dapilza
+Eva,Eva#8698,Eva Nortmann,droucko
+,,Ferdinand,duesenjanik
+Finn,SimplePhysic#0974,Finn Sörensen,ElGu
+Florian_2002,Florian_2002#1213,Florian von Malottky,Erik
+,,Franzi Johannes,eva0x457661
+frederikT,frederikT#3948,Frederik Timme,Fenja MD
+Alex,Random#0272,"Götz, Alex",Florian_2002
+Hannes,Hannes#9774,Hannes Drobek,frederikT
+Ingo,Ingo#7370,Ingo Schmiegel,greensleave
+Jan,Rotpot#8333,Jan Deines,ingo13
+Jan,Jan#9295,Jan Meyer,Jan
+,,Jan-Ole Niet,jannes_989
+Jannes,Jannes#9472,Jannes Hedden,Jannis
+jannis00,jannis00#7279,Jannis,janr00
+Jendrik,Rocko17#1020,Jendrik Wolters,Jean-Michel
+,,Jiri Becker,jonass4380
+Sportler_des_jahres,Sportler_des_jahres#6458,Johannes Pertschy,Jonathan_99
+Jonas B.,Lunukin#8632,Jonas Böhm,Jost
+,,Jonas Lütjohann,Jule
+JonasS,JonasS#4380,Jonas Sitzmann,julezinatorix
+Jost,Jost#2769,Jost,Julia W
+julezinatorix,julezinatorix#9032,Julez,kadda
+Bussi,Bussi#2084,Julia Busse,Kai-59
+Julia W,Julia W#9392,Julia Woortmann,klara
+Kai-59,Kai-59#8694,Kai Sölter,kolja
+kadda,kadda#3394,Kathi Wilbrandt,Kurassier
+kolja,kolja#8285,Kolja,lapislazoe
+,,Laura Quante,lena.simcha
+lena.simcha,lena.simcha#0755,Lena Schönberg,lennart108
+Lennart,Lennart#4535,Lennart Zech,lennartlenny
+LeoLa,LeoLa#9877,Leo,LeoLa
+,,Lile Alina,lie_eude
+,,Lisa Auras,lindt96
+Lucex09,Lucex09#0157,Lucas Böhm,LU
+,,Mak,lucex09
+maliin,maliin#1071,Malin,Luisa
+Marcel54,Marcel54#7478,Marcel Klinge,Lunukin
+Marjan,Marjan#8068,Marjan Schubert,maliin
+matthis,matthis#9831,Matthis Heimberg,Malytt
+Jean-Michel,Jean-Michel#7145,Michel,Marc Hergesell
+Neumann,Neumann#1138,Neumann,Marcel54
+Neumann,Neumann#8084,Neumann,Marjan
+,,Nils Hoffmann,matthias72
+,,Nina Pflugrad,matthis
+Pätrick,Pätrick#8112,Patrick Jung,Milad
+Paul,MuadDib#7448,Paul Busse,MrBenny
+PaulaKi,PaulaKi#3573,Paula Kisse,muaddib7448
+Philipp,ablaZe#6539,Philipp Uhlich,Neumann
+Rickie,Rickie#1849,Rickie,Niemand
+,,Romed Berghoff,nonlinearnodes
+rudi,rudi#1940,Rudi dP,patrick8112
+Sasch,Sasch#4877,Sascha,Paul Tm
+Silvia,Silvia#8088,Silvia Bussmann,PaulaKi
+Simon,Rheina_Zufall#8796,Simon,philippkrnn
+Sören,Sören#4602,Sören Petersen,pondermatic
+Stefan Böhme,Stefan Böhme#9077,Stefan Böhme,random012
+beekehrful,beekehrful#0624,Steffi Kehr,redsfox
+Thies,Thies#0867,Thies Rudnik,Rheina_Zufall
+Tim Kayser,Tim Kayser#9417,Tim Kayser,Rickie
+Tobi,Vroomfondel#5497,Tobias Lülf,Rocko17
+,,Torsten Schönfeld,RotBot
+,,Tschick,Rotpot
+Yauanah,tobeOrnottobe#8411,Yauanah Jeyagobi,Sara-Sophie
+Zoe,Zoe#5131,Zoe,Sasch
+Gerrit,Anti Brumm#1934,,shadowindtukan
+Jule,Jule#1447,,Silvia
+Luisa,Luisa#1034,,soeren7
+,,,Sportler_des_jahres
+,,,stefanboehme
+,,,tammsen
+,,,thies_r
+,,,Tim Kayser
+,,,torbenbeta
+,,,unR
+,,,xhandan
+,,,yauanah

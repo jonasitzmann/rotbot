@@ -11,8 +11,10 @@ import numpy as np
 import pandas as pd
 from discord.commands import ApplicationContext
 from discord.ext import tasks
+from parse import get_names
 
 import config
+import database
 import parse
 import splus
 import utils
@@ -26,43 +28,54 @@ token = os.environ["BOTTOKEN"]
 bot = discord.Bot(intents=intents)
 update_interval = datetime.timedelta(minutes=7)
 
+splus2discord_id = database.DbDict('splus2discord_id')
 
 id_players_info = "1-fHm9B3Gdnnb1uMfUh6m0w_GWnMqBJWNWhk3kBOxaOE"
 players_info = utils.download_google_sheet_as_df(id_players_info).dropna(axis=0)
-splus2discord, discord2splus, members, participation, url2event, old_participation = (
-    {},
-    {},
-    [],
+participation, url2event, old_participation = (
     None,
     {},
     None,
 )
 # debug = True
 debug = False
+all_splus_names = None
 
+def autocomplete_name(ctx):
+    names = list(splus2discord_id.keys())
+    arg = ctx.value
+    if arg:
+        names = [n for n in names if n.lower().startswith(arg.lower())]
+    return names
 
-def get_user(discord_name):
-    username, discrimantor = discord_name.split("#")
-    results = [
-        m for m in members if m.name == username and m.discriminator == discrimantor
-    ]
-    return results[0] if results else None
+def autocomplete_all_names(ctx):
+    arg = ctx.value
+    names = all_splus_names
+    if arg:
+        names = [n for n in names if n.lower().startswith(arg.lower())]
+    return names
+
 
 
 @bot.event
 async def on_ready():
-    global splus2discord, discord2splus, members
-    members = bot.guilds[0].members
-    name2id = {u.name: u.id for u in members}
-    splus2discord = {
-        r.splus_name: get_user(name2id[r.discord_name])
-        for i, r in players_info.iterrows()
-    }
-    discord2splus = {v: k for k, v in splus2discord.items()}
+    global all_splus_names
+    all_splus_names = parse.get_names()
     update_df.start()
 
 
+async def send_msg(name, msg):
+    if name not in splus2discord_id:
+        print(f'{name=} not in splus2discord_id\n{splus2discord_id=}')
+        return
+    user = bot.get_user(splus2discord_id[name])
+    if user is None:
+        print(f'user for {name=} is None')
+    await user.send(msg)
+
+
 async def remember_candidates(dt: timedelta = None, exclude_trainigs=False):
+    discord2splus = {v: k for k, v in splus2discord_id.items()}
     now = datetime.datetime.now() + datetime.timedelta(hours=2)  # todo timezones!
     events: List[Event] = list(url2event.values())
     events = [e for e in events if e is not None]
@@ -79,11 +92,10 @@ async def remember_candidates(dt: timedelta = None, exclude_trainigs=False):
             if participants:
                 msg = f'sending reminders for {event.name if event else ""} on {humanize.naturaldate(event.start)} to:\n{",".join([p.name for p in participants])}'
                 print(msg)
-                await splus2discord["Jonas Sitzmann"].send(msg)
+                await bot.get_user(splus2discord_id["Jonas Sitzmann"]).send(msg)
             for p in participants:
                 name = discord2splus[p].split(" ")[0]
                 msg = f"Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name} ({humanize.naturaldate(event.start)})\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast."
-                # print(msg)
                 await p.send(msg)
 
 
@@ -92,6 +104,13 @@ def filter_trainings_func(row):
     days = (url2event[row.url].start - now).days
     return days < 14
 
+
+@bot.slash_command(name='ichbin')
+async def setup(ctx: ApplicationContext, splus_name=discord.Option(name='splus_name', autocomplete=autocomplete_all_names),):
+    user = ctx.user
+    splus2discord_id[splus_name] = user.id
+    print('ok')
+    await ctx.respond('ok', ephemeral=True)
 
 @tasks.loop(seconds=config.d_send_reminders.total_seconds())
 async def update_df():
@@ -141,8 +160,7 @@ async def check_key_diff_based(
                 print(
                     f'{name} hat sich für {event.name} am {event.start} von "{part_old}" auf "{part_new}" gesetzt, hat aber den Schlüssel {key}!'
                 )
-                member = splus2discord[name]
-                await member.send(
+                await send_msg(name,
                     f'Du hast dich für {event.name} am {event.start} von "{part_old}" auf "{part_new}" gesetzt, hast aber Schlüssel "{key}!"'
                 )
 
@@ -152,8 +170,9 @@ async def check_key_diff_based(
     description="Listet SpielerPlus Termine auf, zu denen du dich noch nicht eingetragen hast",
 )
 async def get_appointments(ctx: ApplicationContext):
-    member = discord.utils.get(members, id=ctx.user.id)
-    if splus_name := discord2splus.get(member, None):
+    discord2splus = {v: k for k, v in splus2discord_id.items()}
+    member_id = ctx.user.id
+    if splus_name := discord2splus.get(member_id, None):
         if splus_name in participation.columns:
             df = participation[["url", splus_name]]
             df = df[df[splus_name] == P.Circle.name.lower()]
@@ -175,7 +194,7 @@ async def get_appointments(ctx: ApplicationContext):
                 for x in [trainings_df, non_training_df]
             ]
             msg = f"Nicht Zu/Abgesagte Termine:\nTrainings (nächste 2 Wochen):\n{trainings_str}\nAndere Termine (nächste 20 Wochen):\n{others_str}"
-            await member.send(embed=discord.Embed(description=msg))
+            await bot.get_user(member_id).send(embed=discord.Embed(description=msg))
             await ctx.respond("ok", ephemeral=True)
 
 
@@ -217,19 +236,12 @@ def get_event_participants(event, participation_types=None, splus_names=False):
     names = df.index.tolist()
     if splus_names:
         return names
-    discordnames = [splus2discord[n] for n in names if n in splus2discord]
-    return discordnames
+    discord_users = [bot.get_user(splus2discord_id[n]) for n in names if n in splus2discord_id]
+    return discord_users
 
 
 janein = {"ja": True, "nein": False}
 
-
-def autocomplete_name(ctx):
-    names = list(splus2discord.keys())
-    arg = ctx.value
-    if arg:
-        names = [n for n in names if n.lower().startswith(arg.lower())]
-    return names
 
 
 @bot.slash_command(name="pn")
@@ -238,9 +250,8 @@ async def write_personal_message(
     target_name: discord.Option(str, "", name="an", autocomplete=autocomplete_name),
     message: discord.Option(str, "", name="nachricht"),
 ):
-    member = splus2discord[target_name]
-    await member.send(message)
-    await ctx.respond("ok", ephemeral=True)
+    await send_msg(target_name, message)
+    ctx.respond('ok', )
 
 
 @bot.slash_command(name="mention")
@@ -277,11 +288,11 @@ async def key_to(
         str, "", autocomplete=autocomplete_name, name="emfaenger_in"
     ),
 ):
+
     db.set(key_name, receiver)
-    sender_name = discord2splus.get(ctx.author, "Unbekannt")
-    await splus2discord[receiver].send(
-        f"{sender_name} hat dir den Schlüssel {key_name} übergeben."
-    )
+    discord2splus = {v: k for k, v in splus2discord_id.items()}
+    sender_name = discord2splus.get(ctx.author.id, "Unbekannt")
+    await send_msg(receiver, f"{sender_name} hat dir den Schlüssel {key_name} übergeben.")
     await ctx.respond(f'{receiver} hat jetzt den Schüssel "{key_name}"')
 
 
