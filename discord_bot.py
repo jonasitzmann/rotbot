@@ -94,7 +94,7 @@ async def remember_candidates(dt: timedelta = None, exclude_trainigs=False):
                 print(msg)
                 await bot.get_user(splus2discord_id["Jonas Sitzmann"]).send(msg)
             for p in participants:
-                name = discord2splus[p].split(" ")[0]
+                name = discord2splus[p.id].split(" ")[0]
                 msg = f"Hey {name}, bitte trag dich für das Folgende Event ein: \n{event.name} ({humanize.naturaldate(event.start)})\nVerbleibende Zeit: {delta} \nSpielerPlus Link: <{event.url}>\nTippe /tragdichein für eine Liste von Terminen, zu denen du dich noch nicht eingetragen hast."
                 await p.send(msg)
 
@@ -306,7 +306,6 @@ location2key = {
     "Rheinring": "Westpark",
     "Sackring": "Halle",
 }
-
 
 @bot.slash_command(name="schluesselda")
 async def bot_key_present(
