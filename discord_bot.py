@@ -106,7 +106,7 @@ def filter_trainings_func(row):
 
 
 @bot.slash_command(name='ichbin')
-async def setup(ctx: ApplicationContext, splus_name=discord.Option(name='splus_name', autocomplete=autocomplete_all_names),):
+async def setup(ctx: ApplicationContext, splus_name=discord.Option(name='splus_name', autocomplete=autocomplete_all_names, required=True),):
     user = ctx.user
     splus2discord_id[splus_name] = user.id
     print('ok')
