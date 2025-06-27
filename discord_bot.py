@@ -52,7 +52,7 @@ def create_frames(img_path, num_segments):
     return frames_dir
 
 def compress_video(video_path: Path) -> Path:
-    output_path = video_path.with_stem("compressed.mp4")  # Ensure file extension is correct
+    output_path = video_path.with_stem("compressed")
 
     # Delete existing output file if it exists
     output_path.unlink(missing_ok=True)
@@ -82,7 +82,7 @@ def create_video(frame_dir: Path, frame_rate: int, num_spins: int):
     height, width, layers = first_frame.shape
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Or 'mp4v' for .mp4 files
     video = cv2.VideoWriter(output_video, fourcc, frameSize=(width, height), fps=frame_rate)
-    for spin_num in num_spins:
+    for spin_num in range(num_spins):
         for img_name in imgs:
             img_path = os.path.join(frame_dir, img_name)
             frame = cv2.imread(img_path)
@@ -126,7 +126,9 @@ async def process_image(
         await ctx.send("sending video")
         print("sending video")
         file = discord.File(fp=compressed_path)
-        await ctx.respond(file=file)
+        await ctx.send(file=file)
+        await ctx.respond("done")
+        print("done")
     except Exception as e:
         print("Error: ", e)
         await ctx.respond(f"error:\n{e}")
