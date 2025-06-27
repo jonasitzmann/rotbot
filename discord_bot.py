@@ -38,7 +38,6 @@ def create_animation(input_img_path: Path, frame_rate: int=24, num_spins: int=5,
     return compressed_path
 
 def create_frames(img_path, num_segments):
-    print("creating frames")
     shutil.rmtree(frames_dir, ignore_errors=True)
     os.mkdir(frames_dir)
     img = Image.open(img_path)
@@ -53,15 +52,26 @@ def create_frames(img_path, num_segments):
     return frames_dir
 
 def compress_video(video_path: Path) -> Path:
-    output_path = video_path.with_stem("compressed")
+    output_path = video_path.with_stem("compressed.mp4")  # Ensure file extension is correct
+
+    # Delete existing output file if it exists
     output_path.unlink(missing_ok=True)
-    shutil.rmtree(output_path, ignore_errors=True)
-    ffmpeg.input(video_path).output(
-        filename=output_path,
-        vcodec='libx264',
-        crf=28,  # Higher means more compression (23=default, 28-35=smaller files)
-        preset='slow'  # can be 'ultrafast', 'fast', 'medium', 'slow'
-    ).run()
+
+    # Use FFmpeg with lower RAM usage
+    (
+        ffmpeg
+        .input(str(video_path))
+        .output(
+            str(output_path),
+            vcodec='libx264',
+            crf=28,                # More compression
+            preset='veryfast',     # Faster = lower CPU/RAM use
+            max_muxing_queue_size=1024,  # Prevent memory spikes with large/variable frames
+        )
+        .overwrite_output()
+        .run(quiet=True)  # Suppress verbose logging (less overhead)
+    )
+
     return output_path
 
 # Directory with image frames
@@ -89,13 +99,13 @@ async def process_image(
     frame_rate: discord.Option(int, default=24, description="Number of circle rotations(24)") = 24,
 ):
     await ctx.defer()
-    await ctx.send("starting")
-    await ct.send(f'{num_rotations=}')
-    await ct.send(f'{num_segments=}')
-    print(f'{num_rotations=}')
-    print(f'{num_segments=}')
     # Download the image into memory
     try:
+        await ctx.send("starting")
+        await ctx.send(f'{num_rotations=}')
+        await ctx.send(f'{num_segments=}')
+        print(f'{num_rotations=}')
+        print(f'{num_segments=}')
         image_bytes = await image.read()
         pil_image = Image.open(BytesIO(image_bytes))
         fp = "received_image.png"
