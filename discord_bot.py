@@ -63,7 +63,7 @@ def compress_video(video_path: Path) -> Path:
         .input(str(video_path))
         .output(
             str(output_path),
-            vcodec='libx265',
+            vcodec='libx264',
             crf=28,                # More compression
             preset='veryfast',     # Faster = lower CPU/RAM use
             max_muxing_queue_size=1024,  # Prevent memory spikes with large/variable frames
