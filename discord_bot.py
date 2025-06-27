@@ -24,16 +24,20 @@ async def process_image(
     print(f'{num_rotations=}')
     print(f'{num_segments=}')
     # Download the image into memory
-    image_bytes = await image.read()
-    pil_image = Image.open(BytesIO(image_bytes))
-    fp = "received_image.png"
-    pil_image.save(fp)
-    video_path = create_animation(input_img_path=fp, num_segments=num_segments, num_spins=num_rotations)
-    # # Optionally flip it
-    # if flip:
-    #     pil_image = pil_image.transpose(Image.FLIP_TOP_BOTTOM)
-    file = discord.File(fp=video_path)
-    await ctx.respond(file=file)
+    try:
+        image_bytes = await image.read()
+        pil_image = Image.open(BytesIO(image_bytes))
+        fp = "received_image.png"
+        pil_image.save(fp)
+        video_path = create_animation(input_img_path=fp, num_segments=num_segments, num_spins=num_rotations)
+        # # Optionally flip it
+        # if flip:
+        #     pil_image = pil_image.transpose(Image.FLIP_TOP_BOTTOM)
+        file = discord.File(fp=video_path)
+        await ctx.respond(file=file)
+    except Exception as e:
+        print("Error: ", e)
+        await ctx.respond("error")
 
 @bot.slash_command(name="ping")
 async def ping(ctx: ApplicationContext):
