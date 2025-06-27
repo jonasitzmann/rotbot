@@ -17,7 +17,8 @@ bot = discord.Bot(intents=intents)
 async def process_image(
     ctx: ApplicationContext,
     image: discord.Option(discord.Attachment, description="Upload an image"),
-    flip: discord.Option(bool, default=False, description="Flip the image vertically?")
+    num_segments: discord.Option(int, default=32, description="Number of circle segments"),
+    num_rotations: discord.Option(int, default=10, description="Number of circle rotations"),
 ):
     await ctx.defer()
     # Download the image into memory
@@ -25,7 +26,7 @@ async def process_image(
     pil_image = Image.open(BytesIO(image_bytes))
     fp = "received_image.png"
     pil_image.save(fp)
-    video_path = create_animation(input_img_path=fp)
+    video_path = create_animation(input_img_path=fp, num_segments=num_segments, num_spins=num_rotations)
     # # Optionally flip it
     # if flip:
     #     pil_image = pil_image.transpose(Image.FLIP_TOP_BOTTOM)
