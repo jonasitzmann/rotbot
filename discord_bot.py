@@ -21,6 +21,8 @@ async def process_image(
     num_rotations: discord.Option(int, default=10, description="Number of circle rotations"),
 ):
     await ctx.defer()
+    print(f'{num_rotations=}')
+    print(f'{num_segments=}')
     # Download the image into memory
     image_bytes = await image.read()
     pil_image = Image.open(BytesIO(image_bytes))
@@ -38,4 +40,5 @@ async def ping(ctx: ApplicationContext):
     await ctx.respond("moin")
 
 
+print("starting rotbot")
 bot.run(token)
