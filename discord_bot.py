@@ -18,7 +18,7 @@ async def process_image(
     ctx: ApplicationContext,
     image: discord.Option(discord.Attachment, description="Upload an image"),
     num_segments: discord.Option(int, default=32, description="Number of circle segments"),
-    num_rotations: discord.Option(int, default=10, description="Number of circle rotations"),
+    num_rotations: discord.Option(int, default=5, description="Number of circle rotations"),
 ):
     await ctx.defer()
     print(f'{num_rotations=}')
