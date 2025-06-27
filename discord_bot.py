@@ -77,15 +77,16 @@ def compress_video(video_path: Path) -> Path:
 # Directory with image frames
 def create_video(frame_dir: Path, frame_rate: int, num_spins: int):
     output_video = frame_dir.with_suffix(".mp4")
-    imgs = sorted(os.listdir(frame_dir)) * num_spins
+    imgs = sorted(os.listdir(frame_dir))
     first_frame = cv2.imread(os.path.join(frame_dir, imgs[0]))
     height, width, layers = first_frame.shape
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Or 'mp4v' for .mp4 files
     video = cv2.VideoWriter(output_video, fourcc, frameSize=(width, height), fps=frame_rate)
-    for img_name in imgs:
-        img_path = os.path.join(frame_dir, img_name)
-        frame = cv2.imread(img_path)
-        video.write(frame)
+    for spin_num in num_spins:
+        for img_name in imgs:
+            img_path = os.path.join(frame_dir, img_name)
+            frame = cv2.imread(img_path)
+            video.write(frame)
     video.release()
     shutil.rmtree(frames_dir, ignore_errors=True)
     return output_video
